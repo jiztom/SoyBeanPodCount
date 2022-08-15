@@ -21,13 +21,13 @@ from skimage import io, transform
 
 import torch
 from torch import nn
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 # Importing torch vision model
 import torchvision
 import torchvision.models as models
-import torchvision.transforms as transforms
+from torchvision import transforms, utils
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 pod_data_path = pt.Path(r'D:\Machine Learning\Challenge\SoyBeanPodCount\Data\Dev_Phase\training\pod_annotations')
@@ -95,3 +95,40 @@ for i in range(len(soy_dataset)):
         break
 
 model = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights="DEFAULT")
+
+dataloader = DataLoader(soy_dataset, batch_size=4,
+                        shuffle=True, num_workers=0)
+
+
+# Helper function to show a batch
+def show_landmarks_batch(sample_batched):
+    """Show image with landmarks for a batch of samples."""
+    images_batch, soy_batch = \
+            sample_batched['image'], sample_batched['label']
+    x, y, w, h = sample_batched['x'],sample_batched['y'], sample_batched['width'], sample_batched['height']
+    batch_size = len(images_batch)
+    im_size = images_batch.size(2)
+    grid_border_size = 2
+
+    grid = utils.make_grid(images_batch)
+    plt.imshow(grid)
+
+    # for i in range(batch_size):
+    #     rect = patches.Rectangle((sample['x'], sample['y']), sample['width'], sample['height'], linewidth=1,
+    #                              edgecolor='r',
+    #                              facecolor='none')
+
+    plt.title('Batch from dataloader')
+
+
+for i_batch, sample_batched in enumerate(dataloader):
+    # print(i_batch, sample_batched['image'].size())
+
+    # observe 4th batch and stop.
+    if i_batch == 3:
+        plt.figure()
+        show_landmarks_batch(sample_batched)
+        plt.axis('off')
+        plt.ioff()
+        plt.show()
+        break
